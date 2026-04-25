@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "请优化这个广告。广告方案在 brands/CATLINK/CATLINK-ProX-Self-Cleaning-Litter-Box-Ready-To-Use-v1.1.md，搜索关键字报告在 brands/CATLINK/搜索关键字报告.xlsx，搜索字词报告在 brands/CATLINK/搜索字词报告.xlsx",
+    "expected": "生成完整的优化报告，包含数据总览、P0/P1问题诊断、否定词调整、关键词调整、出价策略调整、文案调整、优先级执行清单、以及调整后的Ready-To-Use广告文件"
+  },
+  {
+    "id": 2,
+    "prompt": "分析这个广告的投放数据，从用户意图角度告诉我用户为什么搜这些词，以及我应该如何调整广告来匹配用户意图。文件在 brands/Skin Research Institute/",
+    "expected": "输出用户意图分析（意图金字塔分布、用户旅程映射、意图-广告匹配度检查），并基于意图给出文案优化建议"
+  },
+  {
+    "id": 3,
+    "prompt": "帮我看看这个广告的搜索字词报告，为什么花了钱但没转化？搜索字词报告在 brands/PetLovers/搜索字词报告.xlsx",
+    "expected": "诊断零转化原因（价格错配、流量质量、着陆页问题、联盟链接摩擦），给出具体优化措施"
+  }
+]
