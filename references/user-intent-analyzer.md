@@ -35,15 +35,21 @@
                     └─────────────┘
 ```
 
-### 1.2 意图与转化概率
+### 1.2 意图与转化概率（Affiliate场景）
 
-| 意图层级 | 典型搜索词 | 转化概率 | 广告策略 |
-|----------|-----------|---------|---------|
-| 购买决策 | buy, order, purchase, deal, discount | 8-15% | 直接CTA，强调优惠和便捷购买 |
-| 产品调研 | reviews, reddit, worth it, vs, compare | 3-8% | 社会证明，详细卖点，信任建立 |
-| 方案探索 | best, top, 2025, lightweight, quiet | 1-3% | 差异化卖点，教育用户，引导决策 |
-| 问题认知 | why, how to, tired of, fix | 0.5-1% | 痛点共鸣，解决方案展示 |
-| 信息浏览 | amazon, cheap, generic category | 0.1-0.5% | 品牌曝光，低出价，宽泛匹配 |
+| 意图层级 | 典型搜索词 | Amazon购买概率 | CPC范围 | 利润效率 | 广告策略 |
+|----------|-----------|---------------|---------|---------|---------|
+| 购买决策 | buy, order, purchase, deal, discount | 8-15% | 高($2-$5) | **中**（购买率高但CPC高） | 直接CTA，强调便捷购买 |
+| 产品调研 | reviews, reddit, worth it, vs, compare | 3-8% | 中($1-$3) | **高**（购买率中等+CPC适中） | 社会证明，详细卖点，信任 |
+| 方案探索 | best, top, 2025, lightweight, quiet | 1-3% | 低($0.5-$2) | **高**（购买率低但CPC极低=利润空间大） | 差异化卖点，教育引导 |
+| 问题认知 | why, how to, tired of, fix | 0.5-1% | 低($0.3-$1) | **中**（转化链路长但成本低） | 痛点共鸣，解决方案 |
+| 信息浏览 | amazon, cheap, generic category | 0.1-0.5% | 极低($0.1-$0.5) | **低**（几乎不购买） | 严格否定或最低出价 |
+
+**Affiliate核心洞察**：
+- 购买决策意图虽然购买概率最高，但CPC也最高，利润效率未必最佳
+- **方案探索意图是Affiliate的隐藏金矿**：用户主动搜索"best XXX"→CPC通常很低→一旦购买佣金很高→利润效率最高
+- 这就是为什么Category Campaign对Affiliate至关重要：它专门捕获方案探索意图
+- 信息浏览意图对Affiliate是剧毒：几乎不购买，但会消耗预算→必须严格否定
 
 ---
 
@@ -393,13 +399,20 @@ Step 2 (Purchase): "sri dryq price" → 确认价格
 检查用户旅程中是否存在断点：
 
 ```markdown
-| 旅程阶段 | 当前覆盖 | 问题 | 优化建议 |
-|----------|---------|------|---------|
-| 问题认知 | ❌ 无Campaign | 用户搜"tired of heavy dryer"看不到广告 | 启动Pain Points Campaign |
-| 方案探索 | ❌ 无Campaign | 用户搜"best lightweight dryer"看不到广告 | 启动Category Campaign |
-| 产品调研 | ✅ Brand Campaign | 但文案不够强 | 优化Brand文案，强化社会证明 |
-| 购买决策 | ✅ Brand Campaign | 但CTA不够直接 | 增加购买导向标题 |
+| 旅程阶段 | 当前覆盖 | 问题 | 优化建议 | Affiliate利润影响 |
+|----------|---------|------|---------|------------------|
+| 问题认知 | ❌ 无Campaign | 用户搜"tired of heavy dryer"看不到广告 | 启动Pain Points Campaign | 低CPC流量，利润效率中等 |
+| 方案探索 | ❌ 无Campaign | 用户搜"best lightweight dryer"看不到广告 | 启动Category Campaign | **Affiliate金矿**：低CPC+高佣金=高利润 |
+| 产品调研 | ✅ Brand Campaign | 但文案不够强 | 优化Brand文案，强化社会证明 | 核心利润来源，必须优化 |
+| 购买决策 | ✅ Brand Campaign | 但CTA不够直接 | 增加购买导向标题 | 高CPC但高转化，控制成本 |
 ```
+
+**Affiliate旅程断点特殊影响**：
+- 方案探索阶段（Explore）是Affiliate最被低估的利润来源
+- 用户搜"best lightweight hair dryer"时，如果看到你的广告并点击→即使当时没买→24小时Cookie已种下
+- 这个用户之后回Amazon搜索并购买→你赚佣金
+- 而Category Campaign的CPC通常只有Brand的30-50%
+- **结论：Category Campaign对Affiliate的ROI往往高于Brand Campaign**
 
 ---
 
@@ -428,8 +441,26 @@ Step 2 (Purchase): "sri dryq price" → 确认价格
 
 **案例: DryQ vs "bonnet hair dryer"**
 - 表面：都是hair dryer，相关
-- 实际意图：用户想要bonnet（ hood dryer），不是手持吹风机
+- 实际意图：用户想要bonnet（hood dryer），不是手持吹风机
 - 决策：否定 `-bonnet`, `-hood`
+
+**案例: Affiliate专用 — "hair dryer tutorial"**
+- 表面：都是hair dryer，相关
+- 实际意图：用户想学习使用技巧，已有吹风机或不想买
+- 对Affiliate影响：点击=纯亏损（不可能购买）
+- 决策：否定 `-tutorial`, `-how to use`, `-instructions`
+
+**案例: Affiliate专用 — "free hair dryer giveaway"**
+- 表面：hair dryer相关
+- 实际意图：用户想要免费产品
+- 对Affiliate影响：剧毒流量，点击=纯亏损
+- 决策：否定 `-free`, `-giveaway`, `-sample`, `-contest`
+
+**案例: Affiliate专用 — "walmart hair dryer"**
+- 表面：hair dryer相关
+- 实际意图：用户想去Walmart购买
+- 对Affiliate影响：用户不会在你的Amazon链接购买
+- 决策：否定 `-walmart`, `-target`, `-best buy`, `-costco`
 
 ---
 

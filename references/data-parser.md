@@ -64,16 +64,21 @@ avg_cpc = total_cost / total_clicks if total_clicks > 0 else 0
 
 ### 关键输出指标
 
-| 指标 | 计算方式 | 用途 |
-|------|---------|------|
-| 总费用 | sum(cost) | 评估投放规模 |
-| 总点击 | sum(clicks) | 评估流量规模 |
-| 总展示 | sum(impressions) | 评估曝光规模 |
-| 总转化 | sum(conversions) | 评估效果 |
-| 整体CTR | total_clicks / total_impr | 评估吸引力 |
-| 整体CPC | total_cost / total_clicks | 评估成本效率 |
-| 整体CPA | total_cost / total_conv | 评估转化成本 |
-| 整体转化率 | total_conv / total_clicks | 评估转化效率 |
+| 指标 | 计算方式 | 用途 | Affiliate备注 |
+|------|---------|------|--------------|
+| 总费用 | sum(cost) | 评估投放规模 | 直接成本，必须<预估佣金 |
+| 总点击 | sum(clicks) | 评估流量规模 | 用于计算实际EPC |
+| 总展示 | sum(impressions) | 评估曝光规模 | — |
+| 总转化 | sum(conversions) | Google Ads追踪的转化 | **Affiliate通常=0**（无法安装转化像素） |
+| 整体CTR | total_clicks / total_impr | 评估吸引力 | — |
+| 整体CPC | total_cost / total_clicks | 评估成本效率 | **核心指标：必须<盈亏平衡CPC** |
+| 整体CPA | total_cost / total_conv | 评估转化成本 | Affiliate场景通常不可用（转化=0） |
+| 整体转化率 | total_conv / total_clicks | 评估转化效率 | Affiliate场景通常不可用 |
+
+**Affiliate场景特殊说明**：
+- Google Ads的"转化次数"列在Affiliate场景下通常为0或极少，因为Amazon Associates转化无法被Google Ads追踪
+- 不要以"0转化"作为P0问题判断依据（这是Affiliate的常态）
+- 核心效率指标是**CPC vs 盈亏平衡CPC**，而非转化率
 
 ---
 
@@ -238,6 +243,146 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 ### 问题4: 总计行干扰
 **原因**: 报告末尾有"总计"行，会干扰统计分析
 **解决**: 过滤掉包含"总计"字样的行
+
+---
+
+## 3. Amazon Associates订单报告解析（可选但强烈推荐）
+
+### 3.1 文件来源
+- Amazon Associates后台 → Reports → Orders → Download
+- 格式：CSV或TSV
+- 时间范围：建议与Google Ads报告时间范围对齐（或延后1天，因为Cookie延迟）
+
+### 3.2 关键列名
+
+| 原始列名 | 映射名 | 类型 | 说明 |
+|----------|--------|------|------|
+| Date | order_date | date | 订单日期 |
+| Product Name | product_name | string | 商品名称 |
+| ASIN | asin | string | Amazon商品编码 |
+| Quantity | quantity | int | 购买数量 |
+| Price | price | float | 商品单价 |
+| Revenue | revenue | float | 订单金额 |
+| Commission | commission | float | 佣金收入 |
+| Category | category | string | Amazon品类 |
+
+### 3.3 解析步骤
+
+```python
+# Step 1: 读取CSV
+orders = pd.read_csv('orders_report.csv')
+
+# Step 2: 筛选目标ASIN
+# 注意：用户可能购买了其他商品（Cookie窗口内），也要统计
+target_asin = 'B0C25KHCZQ'  # 从广告方案获取
+main_orders = orders[orders['ASIN'] == target_asin]
+other_orders = orders[orders['ASIN'] != target_asin]
+
+# Step 3: 汇总统计
+total_orders = len(orders)
+main_orders_count = len(main_orders)
+other_orders_count = len(other_orders)
+total_commission = orders['Commission'].sum()
+main_commission = main_orders['Commission'].sum()
+other_commission = other_orders['Commission'].sum()
+
+# Step 4: 计算实际EPC
+# 需要与Google Ads的点击数对齐（按日期范围）
+google_ads_clicks = 120  # 来自搜索关键字报告
+effective_epc = total_commission / google_ads_clicks
+main_epc = main_commission / google_ads_clicks
+```
+
+### 3.4 关键输出指标
+
+| 指标 | 计算方式 | Affiliate用途 |
+|------|---------|--------------|
+| 总订单数 | count(orders) | 评估转化规模 |
+| 主推ASIN订单数 | count(ASIN=目标) | 评估产品吸引力 |
+| 附带订单数 | count(ASIN≠目标) | 评估Cookie窗口价值 |
+| 总佣金 | sum(Commission) | 实际收入 |
+| 主推佣金 | sum(Commission where ASIN=目标) | 核心收入 |
+| 附带佣金 | sum(Commission where ASIN≠目标) | Cookie窗口额外收入 |
+| **实际EPC** | 总佣金 ÷ Google Ads点击数 | **核心效率指标** |
+| 实际Amazon转化率 | 主推订单数 ÷ Google Ads点击数 | 校准预估模型 |
+
+### 3.5 与Google Ads数据对齐
+
+```python
+# 对齐逻辑
+# Google Ads报告日期：2026-04-01 至 2026-04-15
+# Amazon Associates报告日期：2026-04-01 至 2026-04-16（延后1天）
+
+# 原因：用户在4月15日点击广告，4月15日23:59下单 → 4月16日才出现在报告中
+# 所以Amazon报告时间范围应比Google Ads延后1天
+
+alignment_notes = """
+Google Ads点击时间: Day 0
+Amazon订单可能时间: Day 0 至 Day 1（24小时Cookie窗口）
+Amazon报告延迟: 通常1-2天
+
+建议对齐方式：
+- Google Ads报告: 2026-04-01 至 2026-04-15
+- Amazon报告: 2026-04-01 至 2026-04-17（延后2天）
+"""
+```
+
+---
+
+## 4. 数据交叉分析（Affiliate增强）
+
+### 4.1 关键词 vs 搜索字词对比
+
+```python
+# 找出哪些搜索字词触发了关键词
+df_kw['keyword_clean'] = df_kw['keyword'].str.replace('"', '').str.replace('[', '').str.replace(']', '')
+
+# 检查搜索字词是否匹配任何关键词
+for term in df_st['search_term']:
+    matched = False
+    for kw in df_kw['keyword_clean']:
+        if kw.lower() in term.lower() or term.lower() in kw.lower():
+            matched = True
+            break
+    if not matched:
+        print(f"未匹配关键词的搜索字词: {term}")
+```
+
+### 4.2 广告组覆盖率分析
+
+```python
+# 广告方案中设计的广告组
+planned_groups = ['AG1A', 'AG1B', 'AG2A', 'AG2B', ...]
+
+# 实际有流量的广告组
+active_groups = df_kw[df_kw['impressions'] > 0]['ad_group'].unique()
+
+# 未启动的广告组
+missing_groups = set(planned_groups) - set(active_groups)
+
+# Affiliate专用：未启动=利润损失
+# 每个未启动的高意图AG = 每天漏掉N个潜在盈利点击
+```
+
+### 4.3 CPC vs 盈亏平衡分析
+
+```python
+# Affiliate核心分析：每个关键词是否盈利
+# 需要传入盈亏平衡CPC（从广告方案获取）
+
+breakeven_cpc = 3.83  # 示例：SRI Dryer
+safe_cap = breakeven_cpc * 0.6  # $2.30
+
+df_kw['profit_rating'] = df_kw.apply(lambda row:
+    'A-高利润' if row['cpc'] < safe_cap * 0.5 else
+    'B-盈利' if row['cpc'] < safe_cap else
+    'C-边缘' if row['cpc'] < breakeven_cpc else
+    'D-亏损', axis=1
+)
+
+# 输出亏损词列表
+loss_keywords = df_kw[df_kw['profit_rating'] == 'D-亏损']
+```
 
 ---
 
