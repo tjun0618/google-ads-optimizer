@@ -235,16 +235,19 @@ CPC < 盈亏平衡CPC（未达P0级别）
 **Affiliate专用判定**：
 以下词类对Affiliate是剧毒（用户不可能购买）：
 - "free"、"giveaway"、"sample"
-- "how to make"、"diy"、"tutorial"
+- "how to make"、"diy"、"tutorial"、"blowout tutorial"、"how to blow dry"
 - "manual"、"instructions"、"pdf"
 - "walmart"、"target"、"best buy"（去别的平台买）
 - "used"、"refurbished"、"open box"
 - "repair"、"fix"、"parts"
+- **助眠/白噪音流量**（高展示零点击剧毒）："asmr"、"white noise"、"sound"、"binaural"、"no ads"
+- **多语言非英语**（根据搜索字词报告动态识别）：西班牙语"secador de pelo"、日语"ヘア ドライヤー"等
 
 **优化建议**：
-- 立即添加否定词：-free, -giveaway, -sample, -how to make, -diy, -walmart, -target, -used, -refurbished
+- 立即添加否定词：-free, -giveaway, -sample, -how to make, -diy, -walmart, -target, -used, -refurbished, -asmr, -white noise, -binaural
 - 检查是否有广泛匹配关键词在触发这些词
 - 收紧匹配类型
+- **语言设置兜底**：确认Campaign语言设为仅English，地域严格限制为United States
 
 ---
 
@@ -330,6 +333,50 @@ CPC < 盈亏平衡CPC（未达P0级别）
 
 ---
 
+### P1-9: 文案绝对承诺（新增）
+
+**判定条件**：
+```
+标题或描述中出现以下绝对化措辞：
+- "Stop [问题]" / "No More [问题]" / "Eliminate [问题]"
+- "Cut [时间] in Half" / "Instant" / "Miracle"
+- "Guarantee" / "100%" / "Always"
+```
+
+**Affiliate影响**：
+- Google Ads政策禁止无数据支撑的绝对化效果承诺
+- 高客单价产品用户期望值高，绝对承诺导致点击后落差大、转化率降低
+- 可能触发广告拒登
+
+**优化建议**：
+- "Stop Frizz" → "Targets Frizz" / "Fights Frizz" / "Reduces Frizz"
+- "Cut Drying Time in Half" → "Dry Hair Faster" / "Dry in Less Time"
+- "No More Frizz" → "Less Frizz" / "Smoother Hair"
+- 使用软化动词：targets/fights/reduces/helps/minimizes
+
+---
+
+### P1-10: 跨AG标题高度重复（新增）
+
+**判定条件**：
+```
+同一通用CTA标题（如"Shop [Brand] on Amazon"）出现在≥4个不同AG中
+```
+
+**Affiliate影响**：
+- 降低广告质量得分
+- 用户看到完全相同的广告，疲劳度高
+- 浪费标题槽位（每个AG只有15个标题位）
+
+**优化建议**：
+- 为每个AG定制差异化CTA：
+  - Brand AG: "Shop [Brand] on Amazon"
+  - Category AG: "Get [Brand] on Amazon" / "View Price on Amazon"
+  - Pain Points AG: "Grab [Brand] on Amazon" / "Find [Brand] on Amazon"
+- 每个AG保留≤2个通用CTA，其余用AG特性标题填充
+
+---
+
 ## P2 中等问题清单
 
 ### P2-1: 关键词匹配类型过于集中
@@ -382,6 +429,50 @@ CPC < 盈亏平衡CPC（未达P0级别）
 - 为每个AG标注目标意图
 - 标题按意图分类（购买决策型、调研型、探索型、痛点型）
 - 描述与目标意图匹配
+
+---
+
+### P2-5: 描述字符超限（新增）
+
+**判定条件**：
+```
+任何描述 > 90字符（Google Ads硬性限制）
+```
+
+**Affiliate影响**：
+- 超限描述无法导入Google Ads Editor
+- 通常意味着描述中包含冗余信息
+- 需精简语言，保留核心卖点
+
+**优化建议**：
+- 删除冗余形容词（如"Powerful yet quiet"→"Quiet motor"）
+- 使用缩写（如"Backed by Amazon's return policy"→"Backed by Amazon"）
+- 保留核心信息：卖点 + CTA + 风险逆转
+
+---
+
+### P2-6: 高客单价产品文案缺乏风险逆转（新增）
+
+**判定条件**：
+```
+产品售价 > $200 且 文案中风险逆转元素占比 < 30%
+```
+
+**风险逆转元素**：
+- Easy returns / Backed by Amazon's return policy
+- Free shipping / Fast Amazon shipping
+- 4.6★ rated / 1,111+ reviews（社会证明也是一种风险逆转）
+- Prime eligible
+
+**Affiliate影响**：
+- 高客单价用户决策顾虑大，需要消除购买风险
+- 缺少风险逆转 = 高点击但低转化
+- Amazon Affiliate的利润完全依赖转化，必须促进即时决策
+
+**优化建议**：
+- 每个AG至少5个标题包含风险逆转元素
+- 描述最后一句固定为风险逆转 + CTA
+- 高客单价产品避免"Best"等最高级（除非有数据支撑），多用"Backed by Amazon"建立信任
 
 ---
 

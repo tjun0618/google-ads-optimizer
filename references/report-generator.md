@@ -637,6 +637,9 @@ ELSE IF CPC已压到最低但仍零订单:
 - [ ] 包含出价策略和预算（Maximize Clicks + Max CPC）
 - [ ] 联盟链接正确标注
 - [ ] 每个关键词标注利润评级和目标意图
+- [ ] **文案无绝对承诺**: 标题/描述中不含 stop/cut/no more/eliminate/instant/miracle/guarantee/in half 等绝对化措辞
+- [ ] **跨AG标题差异化**: 同一Campaign下不同AG的通用CTA标题（Shop/Buy/Check Price等）应有差异化变体，避免完全重复
+- [ ] **高客单价心理按摩**: $200+产品文案中≥30%标题包含风险逆转元素（Easy returns/Backed by Amazon/Free shipping等）
 
 ### OPT-QC-8: 用户意图分析完整性
 - [ ] 搜索字词已按意图层级分类
