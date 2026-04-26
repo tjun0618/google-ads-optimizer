@@ -1,6 +1,6 @@
-# Amazon Affiliate Checklist — Google Ads Optimization Skill
+# YP Affiliate Checklist — Google Ads Optimization Skill
 
-> Amazon联盟营销客的投放前检查清单与持续监控指南
+> YP平台联盟营销客的投放前检查清单与持续监控指南
 > 核心目标：确保产品可盈利、库存可用、政策合规，避免投放后才发现问题
 
 ---
@@ -68,14 +68,14 @@
 - 不能使用中间跳转页面（如yourdomain.com/redirect?asin=xxx）
 - 广告文案必须与Amazon页面一致
 
-### 1.5 Amazon Associates合规检查
+### 1.5 YP平台合规检查
 
 | 检查项 | 要求 |
 |--------|------|
-| Associates Tag正确 | 确保联盟链接包含你的 Associates ID |
+| YP联盟链接正确 | 确保Deep Link指向正确的产品页，追踪参数完整 |
 | 价格标注准确 | 广告中显示的价格必须与Amazon一致（或标注"Price may vary"） |
-| 免责声明 | 如使用内容站，必须包含Amazon Associates免责声明 |
 | 禁止 incentivize | 不能用"点击我的链接获得折扣"等诱导点击 |
+| 品牌授权 | 确认该品牌允许通过YP平台进行联盟推广 |
 
 ---
 

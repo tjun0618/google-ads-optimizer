@@ -246,90 +246,158 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 ---
 
-## 3. Amazon Associates订单报告解析（可选但强烈推荐）
+## 3. YP平台品牌转化报表解析（可选但强烈推荐）
 
-### 3.1 文件来源
-- Amazon Associates后台 → Reports → Orders → Download
-- 格式：CSV或TSV
-- 时间范围：建议与Google Ads报告时间范围对齐（或延后1天，因为Cookie延迟）
+### 3.1 数据来源与格式
 
-### 3.2 关键列名
+**来源**：YP（YieldPlanet/Partnerize）后台 → Reports → Brand Performance 或 Merchant Performance
+**格式**：通常为截图或CSV导出
+**数据粒度**：品牌级聚合（Merchant维度），非ASIN级，非关键词级
 
-| 原始列名 | 映射名 | 类型 | 说明 |
-|----------|--------|------|------|
-| Date | order_date | date | 订单日期 |
-| Product Name | product_name | string | 商品名称 |
-| ASIN | asin | string | Amazon商品编码 |
-| Quantity | quantity | int | 购买数量 |
-| Price | price | float | 商品单价 |
-| Revenue | revenue | float | 订单金额 |
-| Commission | commission | float | 佣金收入 |
-| Category | category | string | Amazon品类 |
+**典型列结构**（以截图为例）：
+
+| 列名 | 说明 |
+|------|------|
+| Merchant ID | 品牌ID |
+| Merchant / Brand | 品牌名称 |
+| click | 联盟链接总点击数（所有渠道） |
+| Detail Page Views | 详情页浏览数 |
+| Add to Carts | 加购数 |
+| Purchases | 购买订单数 |
+| Amount | 订单总金额 |
+| Commission | 佣金收入 |
+
+### 3.2 关键限制：归因粒度
+
+**⚠️ 重要：YP数据无法做关键词级归因**
+
+```
+YP报表提供：品牌级聚合（所有商品 + 所有渠道的总和）
+Google Ads提供：关键词/搜索词/Campaign级粒度
+
+结果：只能做品牌级ROI计算，无法知道"哪个关键词"带来了"哪笔订单"
+```
+
+**实际分析中的处理方式**：
+1. **品牌级ROI**：用YP Commission ÷ Google Ads Cost（同一品牌）
+2. **品牌级EPC**：YP Commission ÷ YP Clicks（品牌聚合）
+3. **关键词级利润评级**：只能基于**预估**（CPC vs 盈亏平衡CPC），用Google Ads数据独立计算
+4. **交叉验证**：如果品牌级ROI为负，但关键词级预估有利润 → 可能是其他渠道（非Google Ads）拉低了转化
 
 ### 3.3 解析步骤
 
 ```python
-# Step 1: 读取CSV
-orders = pd.read_csv('orders_report.csv')
+# Step 1: 从截图/CSV提取数据
+# 示例：用户上传截图，手动识别或OCR提取
 
-# Step 2: 筛选目标ASIN
-# 注意：用户可能购买了其他商品（Cookie窗口内），也要统计
-target_asin = 'B0C25KHCZQ'  # 从广告方案获取
-main_orders = orders[orders['ASIN'] == target_asin]
-other_orders = orders[orders['ASIN'] != target_asin]
+yp_data = {
+    'Skin Research Institute': {
+        'clicks': 216,
+        'dp_views': 148,
+        'add_to_carts': 7,
+        'purchases': 0,
+        'amount': 0.0,
+        'commission': 0.0
+    },
+    'Spytec GPS': {
+        'clicks': 60,
+        'dp_views': 49,
+        'add_to_carts': 2,
+        'purchases': 2,
+        'amount': 33.44,
+        'commission': 25.08
+    }
+    # ... 其他品牌
+}
 
-# Step 3: 汇总统计
-total_orders = len(orders)
-main_orders_count = len(main_orders)
-other_orders_count = len(other_orders)
-total_commission = orders['Commission'].sum()
-main_commission = main_orders['Commission'].sum()
-other_commission = other_orders['Commission'].sum()
-
-# Step 4: 计算实际EPC
-# 需要与Google Ads的点击数对齐（按日期范围）
-google_ads_clicks = 120  # 来自搜索关键字报告
-effective_epc = total_commission / google_ads_clicks
-main_epc = main_commission / google_ads_clicks
+# Step 2: 计算品牌级指标
+for brand, data in yp_data.items():
+    data['epc'] = data['commission'] / data['clicks'] if data['clicks'] > 0 else 0
+    data['cart_rate'] = data['add_to_carts'] / data['clicks'] if data['clicks'] > 0 else 0
+    data['purchase_rate'] = data['purchases'] / data['clicks'] if data['clicks'] > 0 else 0
+    data['avg_order_value'] = data['amount'] / data['purchases'] if data['purchases'] > 0 else 0
+    data['commission_rate'] = data['commission'] / data['amount'] if data['amount'] > 0 else 0
 ```
 
 ### 3.4 关键输出指标
 
-| 指标 | 计算方式 | Affiliate用途 |
-|------|---------|--------------|
-| 总订单数 | count(orders) | 评估转化规模 |
-| 主推ASIN订单数 | count(ASIN=目标) | 评估产品吸引力 |
-| 附带订单数 | count(ASIN≠目标) | 评估Cookie窗口价值 |
-| 总佣金 | sum(Commission) | 实际收入 |
-| 主推佣金 | sum(Commission where ASIN=目标) | 核心收入 |
-| 附带佣金 | sum(Commission where ASIN≠目标) | Cookie窗口额外收入 |
-| **实际EPC** | 总佣金 ÷ Google Ads点击数 | **核心效率指标** |
-| 实际Amazon转化率 | 主推订单数 ÷ Google Ads点击数 | 校准预估模型 |
+| 指标 | 计算方式 | 用途 | 备注 |
+|------|---------|------|------|
+| YP Clicks | 截图中的click列 | 品牌级总点击 | 包含所有渠道，可能>Google Ads点击 |
+| YP Purchases | 截图中的Purchases | 品牌级购买数 | — |
+| YP Commission | 截图中的Commission | 品牌级佣金收入 | **核心收入指标** |
+| **品牌EPC** | Commission ÷ Clicks | 品牌级每点击收益 | 非关键词级 |
+| 加购率 | Add to Carts ÷ Clicks | 漏斗中段转化 | 反映产品页吸引力 |
+| 购买率 | Purchases ÷ Clicks | 漏斗底端转化 | 反映整体转化效率 |
+| 客单价 | Amount ÷ Purchases | 平均订单金额 | 用于验证与广告方案是否一致 |
+| **品牌ROI** | (Commission - Google Ads Cost) / Google Ads Cost | **核心盈利指标** | 同一品牌对齐 |
 
 ### 3.5 与Google Ads数据对齐
 
 ```python
-# 对齐逻辑
-# Google Ads报告日期：2026-04-01 至 2026-04-15
-# Amazon Associates报告日期：2026-04-01 至 2026-04-16（延后1天）
-
-# 原因：用户在4月15日点击广告，4月15日23:59下单 → 4月16日才出现在报告中
-# 所以Amazon报告时间范围应比Google Ads延后1天
+# 对齐逻辑（品牌级别）
+# YP报表日期范围：2026-04-01 至 2026-04-15
+# Google Ads报告日期范围：2026-04-01 至 2026-04-15
 
 alignment_notes = """
-Google Ads点击时间: Day 0
-Amazon订单可能时间: Day 0 至 Day 1（24小时Cookie窗口）
-Amazon报告延迟: 通常1-2天
+YP平台报表 vs Google Ads报告对齐：
 
-建议对齐方式：
-- Google Ads报告: 2026-04-01 至 2026-04-15
-- Amazon报告: 2026-04-01 至 2026-04-17（延后2天）
+1. 时间对齐：
+   - 两个报表使用相同日期范围
+   - YP数据通常实时或T+1，无Amazon Associates的24小时Cookie延迟问题
+
+2. 品牌对齐：
+   - YP用品牌名（如"Skin Research Institute"）
+   - Google Ads用Campaign名（如"SRI-DryQ-Brand"）
+   - 需要人工映射：广告方案中的品牌名 → Google Ads Campaign名
+
+3. 点击数差异解释：
+   - YP Clicks ≠ Google Ads Clicks 是正常现象
+   - YP Clicks = 所有渠道（Google Ads + Bing + 自然流量 + 社媒等）
+   - 如果只做Google Ads → YP Clicks ≈ Google Ads Clicks
+   - 如果多渠道投放 → YP Clicks > Google Ads Clicks
+
+4. ROI计算：
+   品牌ROI = (YP Commission - Google Ads Cost) / Google Ads Cost
+   
+   注意：分母只用Google Ads Cost（因为只优化Google Ads投放）
+   分子用YP Commission（可能包含其他渠道的转化，这是有利的——说明你投的Google Ads间接促进了其他渠道转化）
 """
+```
+
+### 3.6 数据交叉分析（品牌级）
+
+```python
+# 示例：分析Skin Research Institute品牌
+
+brand_name = 'Skin Research Institute'
+google_ads_cost = 556.44  # CNY，来自搜索关键字报告
+google_ads_clicks = 120    # 来自搜索关键字报告
+yp_clicks = 216            # 来自YP报表
+yp_commission = 0.0        # 来自YP报表
+yp_purchases = 0           # 来自YP报表
+
+# 品牌级ROI
+brand_roi = (yp_commission - google_ads_cost) / google_ads_cost
+# 结果：-100%（因为yp_commission=0）
+
+# 品牌级EPC（YP视角）
+brand_epc_yp = yp_commission / yp_clicks if yp_clicks > 0 else 0
+# 结果：$0
+
+# Google Ads CPC（投放成本视角）
+google_ads_cpc = google_ads_cost / google_ads_clicks
+# 结果：¥4.64 (~$0.65)
+
+# 关键判断：
+# 如果 brand_epc_yp < google_ads_cpc → 品牌整体亏损
+# 如果 brand_epc_yp > google_ads_cpc → 品牌整体盈利
+# 注意：这里的比较是粗略的，因为YP Clicks和Google Ads Clicks基数不同
 ```
 
 ---
 
-## 4. 数据交叉分析（Affiliate增强）
+## 4. 数据交叉分析（YP平台增强）
 
 ### 4.1 关键词 vs 搜索字词对比
 

@@ -5,8 +5,8 @@ description: Google Ads Affiliate广告优化技能 — 专为Amazon联盟营销
 
 # Google Ads Optimization Skill — Amazon Affiliate Edition
 
-> 版本: v2.1 | 2026-04-26
-> 定位: 专为Amazon联盟营销客(Amazon Affiliate Marketer)设计的广告优化技能
+> 版本: v2.2 | 2026-04-26
+> 定位: 专为YP平台Amazon联盟营销客设计的广告优化技能
 > 上游依赖: google-ads-v6.3（广告创建）→ 本技能（投放优化）→ 持续迭代
 
 ---
@@ -15,13 +15,14 @@ description: Google Ads Affiliate广告优化技能 — 专为Amazon联盟营销
 
 作为Amazon Affiliate，你的优化约束与普通电商完全不同：
 
-| 约束 | 普通电商 | Amazon Affiliate |
-|------|---------|-----------------|
+| 约束 | 普通电商 | Amazon Affiliate (YP平台) |
+|------|---------|--------------------------|
 | 落地页 | 可控，可A/B测试 | 不可控，直接到Amazon |
-| 转化追踪 | Google Ads像素完整追踪 | 无法追踪，只能看Amazon Associates后台 |
+| 转化追踪 | Google Ads像素完整追踪 | 无法追踪，只能通过YP平台看品牌级转化 |
+| 数据粒度 | 关键词/搜索词级归因 | **品牌级聚合**，无法追踪到具体搜索词 |
 | 出价策略 | Target CPA / Maximize Conversions 可用 | 只能用 Maximize Clicks 或人工出价 |
 | 受众 | 可用RLSA再营销 | 无网站，无法收集受众 |
-| 利润模型 | 销售收入 - 广告成本 | Amazon佣金 - Google Ads支出 |
+| 利润模型 | 销售收入 - 广告成本 | YP平台佣金 - Google Ads支出 |
 | Cookie窗口 | 无限制（自己的转化） | 24小时Amazon Associates Cookie |
 
 **Affiliate优化的核心公式**（详见 → `references/affiliate-profit-analyzer.md`）:
@@ -44,7 +45,9 @@ description: Google Ads Affiliate广告优化技能 — 专为Amazon联盟营销
 | 1 | 广告方案文件 | .md | 之前由google-ads-v6.3生成的Ready-To-Use清洁版 | 是 |
 | 2 | 搜索关键字报告 | .xlsx | Google Ads后台导出 → 报告 → 搜索关键字 | 是 |
 | 3 | 搜索字词报告 | .xlsx | Google Ads后台导出 → 报告 → 搜索字词 | 是 |
-| 4 | Amazon Associates订单报告 | .csv/.xlsx | Amazon Associates后台 → Reports → Orders | 可选但强烈推荐 |
+| 4 | **YP平台品牌转化报表** | 截图/CSV | YP后台 → Reports → Brand Performance | 可选但强烈推荐 |
+
+**重要限制**：YP平台提供的是**品牌级聚合数据**（Merchant维度），包含该品牌所有商品的点击、加购、购买、佣金。无法追踪到具体ASIN、搜索词或关键词。因此利润分析只能做到品牌/Campaign级别，无法做关键词级归因。
 
 **文件命名约定**：建议将文件放在同一品牌目录下，如 `brands/[BrandName]/`
 
@@ -86,8 +89,8 @@ Step 8: 生成调整后的Ready-To-Use广告文件
 
 ### 执行
 1. 确认必要文件（1-3）都存在且可读
-2. 如有Amazon Associates订单报告（文件4），一并读取
-3. 读取广告方案文件中的产品名称、ASIN、价格、佣金率
+2. 如有YP平台品牌转化报表（文件4），一并读取
+3. 读取广告方案文件中的产品名称、品牌名、ASIN、价格、佣金率
 4. 读取Excel报告中的关键词/字词样本，判断是否与广告方案的产品匹配
 
 ### 匹配性判断规则
@@ -126,19 +129,19 @@ Step 8: 生成调整后的Ready-To-Use广告文件
   4. 继续执行分析，但在报告中标注时间范围差异
 ```
 
-**Amazon Associates订单报告格式错误**:
+**YP平台品牌转化报表格式错误**:
 ```
-如果用户提供了Amazon Associates订单报告但无法解析:
-  1. 尝试识别文件格式（CSV/TSV/XLSX）
-  2. 检查是否包含必需的列（Date/ASIN/Commission）
+如果用户提供了YP平台报表但无法解析:
+  1. 尝试识别输入格式（截图/CSV/Excel）
+  2. 检查是否包含必需的列（Merchant/click/Add to Carts/Purchases/Commission）
   3. 如果缺少关键列:
-     - 告知用户报告格式不匹配
+     - 告知用户报表格式不匹配
      - 说明需要的列名和格式
-     - 标记为"无Amazon订单数据"，继续用预估模型分析
-  4. 如果解析成功但无目标ASIN的订单:
-     - 告知用户未检测到该产品订单
-     - 检查是否 Associates Tag 正确
-     - 继续分析，但标注"实际EPC=0（可能追踪遗漏或确实无转化）"
+     - 标记为"无YP转化数据"，继续用预估模型分析
+  4. 如果解析成功但无目标品牌的转化数据:
+     - 告知用户未检测到该品牌订单
+     - 可能原因：(1)投放时间不足 (2)该品牌未产生转化 (3)报表时间范围不匹配
+     - 继续分析，但标注"实际佣金=0"
 ```
 
 **Amazon产品不可用或库存紧张**:
@@ -162,7 +165,7 @@ Step 8: 生成调整后的Ready-To-Use广告文件
 - 搜索关键字报告：关键词列表、匹配类型、广告组、展示/点击/费用
 - 搜索字词报告：字词列表、匹配类型、广告组、已添加/已排除状态、展示/点击/费用
 - 关键汇总指标：总费用、总点击、总展示、整体CTR、整体CPC
-- 如有关联报告：Amazon订单数、佣金收入
+- 如有关联报告：YP品牌级点击、加购、购买、佣金收入
 
 ---
 
@@ -212,16 +215,33 @@ Step 8: 生成调整后的Ready-To-Use广告文件
 
 ### 前置输入
 - Step 3的意图分析结果（意图分布、旅程断点、意图-广告匹配度）
-- 广告方案中的产品信息（售价、佣金率、ASIN）
+- 广告方案中的产品信息（品牌名、售价、佣金率、ASIN）
 - 解析后的Google Ads数据（关键词CPC、点击量）
-- 可选：Amazon Associates订单报告
+- 可选：YP平台品牌转化报表
 
 ### 核心输出
 - **盈亏平衡CPC**：基于产品佣金率、预估Amazon转化率计算
-- **关键词利润评级**：每个关键词/广告组的预期利润（A高利润/B盈利/C边缘/D亏损）
-- **实际EPC估算**：如有Amazon订单报告，计算实际每点击收益
-- **亏损词识别**：CPC超过盈亏平衡点的关键词
+- **品牌级实际ROI**：如有YP报表，计算(YP佣金 - Google Ads费用) / Google Ads费用
+- **品牌级实际EPC**：YP Commission ÷ YP Clicks（品牌级，非关键词级）
+- **关键词利润评级**：基于CPC vs 盈亏平衡CPC的**预估**评级（非实际，因无法关键词级归因）
+- **亏损词识别**：CPC超过盈亏平衡点的关键词（预估）
 - **高利润机会**：低CPC + 高购买意图的关键词（通常来自Explore/Aware意图）
+
+### ⚠️ 归因限制说明
+
+**为什么只能做品牌级利润分析？**
+- YP平台提供的是品牌级聚合数据（所有商品、所有渠道的总和）
+- 无法知道"哪个Google Ads关键词"带来了"哪笔YP订单"
+- 因此实际EPC只能计算到品牌级别：Commission_total / Clicks_total
+- 关键词利润评级只能基于**预估**（CPC vs 盈亏平衡CPC），而非实际转化数据
+- Google Ads的搜索字词报告 + YP的品牌报表 = 只能交叉验证品牌整体表现
+
+**对齐方法**：
+```
+YP品牌级EPC = 品牌总Commission / 品牌总Clicks
+Google Ads品牌费用 = 该品牌Campaign总Cost
+品牌ROI = (YP Commission - Google Ads Cost) / Google Ads Cost
+```
 
 ### 利润分析如何驱动优化
 
@@ -243,22 +263,34 @@ Step 8: 生成调整后的Ready-To-Use广告文件
 
 | 指标 | 数值 |
 |------|------|
-| 产品 | [产品名] | $[价格] | [评分]★ |
-| 佣金率 | [X]% | 预估每单佣金 | $[X] |
-| 预估Amazon转化率 | [X]% | 品类基准 |
-| **盈亏平衡CPC** | **$[X]** | 核心红线：CPC必须低于此值 |
+| 品牌 | [品牌名] | 产品 | [产品名] |
+| 售价 | $[价格] | 佣金率 | [X]% |
+| 预估每单佣金 | $[X] | 预估Amazon转化率 | [X]% |
+| **盈亏平衡CPC** | **$[X]** | 核心红线 |
 | 安全系数 | [X] | 建议0.3-0.7 |
 | **安全CPC上限** | **$[X]** | 建议出价不超过此值 |
 
+### Google Ads数据
 | 指标 | 当前值 | 状态 |
 |------|--------|------|
-| 平均CPC | $[X] | [低于/高于]安全上限 |
-| 预估盈亏状态 | [盈利/亏损/边缘] | — |
+| Google Ads费用 | ¥[X] | — |
+| Google Ads点击 | [N] | — |
+| Google Ads平均CPC | $[X] | [低于/高于]安全上限 |
+
+### YP平台实际数据（如有）
+| 指标 | 当前值 | 状态 |
+|------|--------|------|
+| YP Clicks | [N] | 品牌级聚合 |
+| YP Purchases | [N] | — |
+| YP Commission | $[X] | — |
+| **实际品牌EPC** | **$[X]** | 实际 vs 预估 |
+| **品牌ROI** | **[X]%** | 盈利/亏损 |
 
 **关键发现**:
-- [N]个关键词处于亏损状态（D级），已消耗$[X]
-- [N]个关键词处于高利润状态（A级），建议加码
-- 当前平均CPC $[X] vs 盈亏平衡 $[X]，安全边际 [X]%
+- [N]个关键词预估处于亏损状态（D级），已消耗$[X]
+- [N]个关键词预估处于高利润状态（A级），建议加码
+- Google Ads平均CPC $[X] vs 盈亏平衡 $[X]，安全边际 [X]%
+- YP实际EPC $[X] vs 预估盈亏平衡 $[X]，[高于/低于]预期
 
 **请确认以上利润模型后，我将继续进行问题诊断和优化建议。**
 ```
@@ -314,10 +346,10 @@ Step 8: 生成调整后的Ready-To-Use广告文件
 
 在生成具体优化方案前，先执行Affiliate专用合规检查（详见 → `references/amazon-affiliate-checklist.md`）：
 
-**Amazon Associates合规**:
+**YP平台与Amazon合规**:
 - [ ] 广告文案中的价格是否与Amazon一致（或标注"Price may vary"）
-- [ ] 是否包含Amazon Associates免责声明（如使用内容桥接）
 - [ ] 是否存在 incentivize 点击的措辞（如"click my link for discount"）
+- [ ] YP联盟链接是否正确（检查Deep Link是否指向正确产品页）
 
 **Google Ads政策合规**:
 - [ ] 落地页是否为Amazon实际产品页（非Bridge Page）
@@ -470,7 +502,7 @@ Step 8: 生成调整后的Ready-To-Use广告文件
 - [ ] 两个Excel报告都成功解析
 - [ ] 总费用/点击/展示数据已提取
 - [ ] 搜索字词报告中的"已添加/已排除"状态已识别
-- [ ] 如有Amazon Associates报告，订单数据已提取
+- [ ] 如有YP平台报表，品牌级转化数据已提取
 
 ### OPT-QC-2: 产品匹配性
 - [ ] 搜索字词与广告方案品类一致
@@ -532,3 +564,4 @@ Step 8: 生成调整后的Ready-To-Use广告文件
 | v1.0 | 2026-04-25 | 初始版本，基于CATLINK Pro X和SRI DryQ两次优化经验提炼 |
 | v2.0 | 2026-04-26 | **重大重构**：专为Amazon Affiliate场景重新设计。新增利润分析模块、Affiliate专用诊断规则、库存监控、Cookie归因策略。移除所有依赖转化追踪的出价策略。 |
 | v2.1 | 2026-04-26 | **达尔文优化**：Step顺序调整（意图分析先于利润分析）、新增利润分析确认检查点、新增Amazon报告格式错误边界条件、新增政策合规检查、精简SKILL.md（详细规则移至references）。 |
+| v2.2 | 2026-04-26 | **数据源修正**：将Amazon Associates订单报告改为YP平台品牌转化报表。利润分析从关键词级改为品牌级（因YP数据为品牌聚合）。新增归因限制说明。 |
