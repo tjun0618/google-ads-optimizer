@@ -1,18 +1,15 @@
-# Optimization Analyzer Reference — Google Ads Optimization Skill
+# Optimization Analyzer Reference — Google Ads Optimization Skill v3.0
 
-> 专为Amazon Affiliate场景设计的诊断分析规则
-> 核心目标：识别浪费点击成本的问题，确保每一分钱都花在能产生佣金的流量上
+> 诊断结论→优化行动映射规则 + 清洁版广告调整方法
+>
+> **v3.0定位**：本文件是优化技能的核心执行手册。
+> 诊断技能（google-ads-diagnosis）负责"发现问题"，本文件负责"解决问题"。
+> 本文件不包含P0/P1/P2检测规则（已迁移到诊断技能），只包含优化行动映射。
 
 ---
 
-## 诊断原则
+## 优化铁律
 
-**Affiliate诊断的核心差异**：
-- 普通电商优化关注"转化率" → Affiliate关注"CPC vs 盈亏平衡"
-- 普通电商可以容忍品牌曝光型点击 → Affiliate每个无效点击都是纯亏损
-- 普通电商可以用自动出价 → Affiliate只能用利润上限约束的出价
-
-**诊断铁律**：
 1. CPC超过盈亏平衡的关键词 = **必须暂停**（无论CTR多高）
 2. 广泛匹配触发无关词 = **必须收紧**（Affiliate没有预算浪费在测试上）
 3. 未启动的Category/Pain Points Campaign = **必须启动**（这是利润最高的流量）
@@ -20,493 +17,142 @@
 
 ---
 
-## 问题分级体系
-
-| 级别 | 定义 | 对Affiliate的影响 | 响应速度 |
-|------|------|------------------|---------|
-| **P0 - 致命** | 直接导致亏损或完全无效 | 每多存在一天就多亏一天的钱 | 今天必须处理 |
-| **P1 - 严重** | 显著降低利润效率 | 浪费20-50%预算在无效流量上 | 本周必须处理 |
-| **P2 - 中等** | 影响优化空间 | 错过高利润机会或积累不必要风险 | 两周内处理 |
-
----
-
-## P0 致命问题清单（Affiliate专用）
-
-### P0-1: CPC超过盈亏平衡CPC
-
-**判定条件**：
-```
-关键词平均CPC > 盈亏平衡CPC × 1.0
-  或
-广告组平均CPC > 盈亏平衡CPC × 1.2（广告组级更宽松，因为有长尾效应）
-```
-
-**数据证据要求**：
-- 该关键词/广告组的点击数 ≥ 3（避免偶然性）
-- CPC数据来自搜索关键字报告
-
-**根因分析方向**：
-1. 出价过高（人工出价未设上限）
-2. 竞争激烈（竞品品牌词竞价战）
-3. 匹配类型过宽（广泛匹配拉高CPC）
-4. 质量得分低（广告相关性不足）
-
-**优化建议**：
-- 立即暂停该关键词
-- 或降低出价至盈亏平衡CPC × 0.6
-- 或改为精确匹配减少竞争
-
-**示例**：
-```markdown
-### 问题 1（P0）: 关键词CPC超过盈亏平衡
-
-**数据证据**:
-| 指标 | 数值 |
-|------|------|
-| 关键词 | +dyson hair dryer alternative |
-| 广告组 | AG3D Dyson Alternative |
-| 点击 | 8 |
-| 平均CPC | $4.50 |
-| 盈亏平衡CPC | $3.83 |
-| 超标 | 17% |
-| 已消耗费用 | $36 |
-
-**根因分析**:
-1. 广泛匹配触发了大量竞品词，拉高了竞争
-2. "dyson"品牌词本身CPC极高
-3. 该词实际转化效率存疑
-
-**优化建议**:
-- 立即暂停 +dyson hair dryer alternative
-- 改为精确匹配：[dyson hair dryer alternative] 和 "dyson hair dryer alternative"
-- 新匹配类型出价上限设为 $2.00
-
-**影响评估**:
-- 已浪费 $36（无法追回）
-- 预计每月节省 $108（按当前消耗速度）
-```
-
----
-
-### P0-2: Amazon产品不可用或库存紧张
-
-**判定条件**：
-```
-产品状态 = Currently unavailable / Out of stock / Only X left in stock (X<10)
-  且
-广告仍在运行
-```
-
-**根因分析方向**：
-1. 用户未监控Amazon库存状态
-2. Amazon库存波动（FBA缺货）
-3. 产品季节性断货
-
-**优化建议**：
-- **立即暂停所有Campaign**
-- 设置库存监控提醒（每日检查）
-- 库存恢复后重新启动
-
-**Affiliate特殊性**：
-- 普通电商：产品不可用 → 用户可以买其他产品
-- Affiliate：产品不可用 → 点击=纯亏损，用户无法购买任何东西
-
----
-
-### P0-3: 广告结构严重失衡（实际运行AG < 设计AG的50%）
-
-**判定条件**：
-```
-实际有数据的广告组数量 < 广告方案设计广告组数量的50%
-  且
-总费用 > ¥100
-```
-
-**根因分析方向**：
-1. Category/Pain Points Campaign完全未启动
-2. 只投了Brand Campaign
-3. 预算全部集中在低利润Campaign上
-
-**优化建议**：
-- 立即启动未运行的Category Campaign（至少1-2个核心AG）
-- 将Brand Campaign预算从100%降至30-40%
-- 优先启动高意图AG（如Category Core、Dyson Alternative）
-
-**示例**：
-```markdown
-### 问题 2（P0）: 91%预算集中在单一Campaign
-
-**数据证据**:
-| Campaign | 广告组数 | 费用 | 占比 |
-|----------|---------|------|------|
-| Brand | 3 | ¥506.44 | 91% |
-| Category | 0 | ¥0 | 0% |
-| Pain Points | 1 | ¥50 | 9% |
-
-**根因分析**:
-1. Category Campaign完全未启动
-2. Brand Campaign CPC较低，系统持续分配预算
-3. 高意图流量（Category）完全未触达
-
-**优化建议**:
-- 立即启动Category Campaign的3个AG
-- Brand预算从¥100/天降至¥40/天
-- Category预算分配¥60/天
-- Pain Points预算维持¥30/天
-
-**影响评估**:
-- 当前：每天90%预算投在Brand（用户已知品牌）
-- 优化后：60%预算投在Category（用户主动搜索品类，购买意图更强）
-- Category Campaign的EPC通常比Brand高30-50%
-```
-
----
-
-## P1 严重问题清单
-
-### P1-1: 广泛匹配触发大量无关词
-
-**判定条件**：
-```
-某个广泛匹配关键词触发的搜索字词中，无关词占比 ≥ 30%
-  或
-搜索字词报告中"已添加/已排除"为"都没有"且明显无关的字词 ≥ 20条
-```
-
-**根因分析方向**：
-1. 广泛匹配设置过于宽松
-2. 否定词不足
-3. 关键词本身含义过宽
-
-**优化建议**：
-- 将广泛匹配改为词组匹配或精确匹配
-- 批量添加否定词（从搜索字词报告中提取）
-- 如果必须保留广泛匹配，设置更严格的否定词
-
----
-
-### P1-2: 零效果关键词（有展示但零点击）
-
-**判定条件**：
-```
-展示次数 > 100 且 点击次数 = 0
-  或
-展示次数 > 50 且 CTR < 0.5%
-```
-
-**根因分析方向**：
-1. 关键词与广告文案不匹配
-2. 广告文案吸引力不足
-3. 关键词搜索量虚高（低商业意图）
-4. 竞争激烈，广告排名低
-
-**优化建议**：
-- 暂停展示>200且点击=0的关键词
-- 检查关键词与广告文案的相关性
-- 考虑是否关键词过于宽泛
-
----
-
-### P1-3: CPC异常偏高
-
-**判定条件**：
-```
-关键词CPC > 整体平均CPC × 1.5
-  且
-该关键词点击数 ≥ 3
-  且
-CPC < 盈亏平衡CPC（未达P0级别）
-```
-
-**优化建议**：
-- 降低出价15-30%
-- 改为更精确的匹配类型
-- 检查是否有竞品品牌词拉高CPC
-
----
-
-### P1-4: 搜索字词中大量非购买意图词
-
-**判定条件**：
-```
-搜索字词中，信息类/教程类/免费类词占比 ≥ 20%
-```
-
-**Affiliate专用判定**：
-以下词类对Affiliate是剧毒（用户不可能购买）：
-- "free"、"giveaway"、"sample"
-- "how to make"、"diy"、"tutorial"、"blowout tutorial"、"how to blow dry"
-- "manual"、"instructions"、"pdf"
-- "walmart"、"target"、"best buy"（去别的平台买）
-- "used"、"refurbished"、"open box"
-- "repair"、"fix"、"parts"
-- **助眠/白噪音流量**（高展示零点击剧毒）："asmr"、"white noise"、"sound"、"binaural"、"no ads"
-- **多语言非英语**（根据搜索字词报告动态识别）：西班牙语"secador de pelo"、日语"ヘア ドライヤー"等
-
-**优化建议**：
-- 立即添加否定词：-free, -giveaway, -sample, -how to make, -diy, -walmart, -target, -used, -refurbished, -asmr, -white noise, -binaural
-- 检查是否有广泛匹配关键词在触发这些词
-- 收紧匹配类型
-- **语言设置兜底**：确认Campaign语言设为仅English，地域严格限制为United States
-
----
-
-### P1-5: 意图分布失衡
-
-**判定条件**：
-```
-某一意图层级的点击占比 > 70%
-  或
-购买决策/方案探索意图的点击占比 < 10%
-```
-
-**优化建议**：
-- 如果90%是信息浏览 → 否定词不足，流量太泛
-- 如果调研意图过高但无社会证明文案 → 调整Brand Campaign文案
-- 如果购买决策意图为零 → 缺少高意图关键词
-
----
-
-### P1-6: 意图-广告错配
-
-**判定条件**：
-```
-用户搜索意图为A，但触发的广告明显针对意图B
-  且
-该搜索字词产生了点击（即用户确实点了不相关的广告）
-```
-
-**典型错配案例**：
-| 搜索字词 | 用户意图 | 触发广告 | 错配类型 |
-|----------|---------|---------|---------|
-| "sri dryq reviews reddit" | 调研 | Brand硬卖广告 | 调研→硬卖 |
-| "best hair dryer 2025" | 方案探索 | Brand广告 | 探索→品牌 |
-| "how to fix hair dryer" | 问题解决 | 产品广告 | 问题→产品 |
-| "dyson hair dryer" | 竞品 | 你的Brand广告 | 竞品→你的品牌 |
-
-**优化建议**：
-- 调研意图词 → 文案强化社会证明（reviews、ratings）
-- 方案探索词 → 启动Category Campaign
-- 问题解决词 → 启动Pain Points Campaign
-- 竞品词 → 在Pain Points Campaign中保留，但Brand Campaign中排除
-
----
-
-### P1-7: 用户旅程断点
-
-**判定条件**：
-```
-用户搜索词链显示从阶段A到阶段B的过渡，但阶段B无广告覆盖
-```
-
-**典型断点**：
-- 用户搜 "tired of heavy hair dryer"（Aware）→ 无Pain Points Campaign → 断点
-- 用户搜 "best lightweight hair dryer"（Explore）→ 无Category Campaign → 断点
-- 用户搜 "sri dryq reviews"（Research）→ Brand Campaign硬卖文案 → 断点
-
-**优化建议**：
-- 启动缺失的Campaign（Category/Pain Points）
-- 调整文案匹配旅程阶段
-
----
-
-### P1-8: Amazon产品页面风险
-
-**判定条件**：
-```
-产品评分 < 4.0 且 Review数量 < 50
-  或
-产品评分 < 3.5（无论Review数量）
-  或
-评论中近期（30天内）出现大量负面评价
-```
-
-**Affiliate影响**：
-- 低评分产品：Amazon转化率可能只有正常品的30-50%
-- 即使CPC很低，低转化率也可能导致亏损
-- 需要降低预估转化率，收紧CPC上限
-
-**优化建议**：
-- 重新计算盈亏平衡CPC（使用更低的预估转化率）
-- 考虑暂停投放，等待评分回升
-- 如果必须投放，大幅收紧CPC上限
-
----
-
-### P1-9: 文案绝对承诺（新增）
-
-**判定条件**：
-```
-标题或描述中出现以下绝对化措辞：
-- "Stop [问题]" / "No More [问题]" / "Eliminate [问题]"
-- "Cut [时间] in Half" / "Instant" / "Miracle"
-- "Guarantee" / "100%" / "Always"
-```
-
-**Affiliate影响**：
-- Google Ads政策禁止无数据支撑的绝对化效果承诺
-- 高客单价产品用户期望值高，绝对承诺导致点击后落差大、转化率降低
-- 可能触发广告拒登
-
-**优化建议**：
-- "Stop Frizz" → "Targets Frizz" / "Fights Frizz" / "Reduces Frizz"
-- "Cut Drying Time in Half" → "Dry Hair Faster" / "Dry in Less Time"
-- "No More Frizz" → "Less Frizz" / "Smoother Hair"
-- 使用软化动词：targets/fights/reduces/helps/minimizes
-
----
-
-### P1-10: 跨AG标题高度重复（新增）
-
-**判定条件**：
-```
-同一通用CTA标题（如"Shop [Brand] on Amazon"）出现在≥4个不同AG中
-```
-
-**Affiliate影响**：
-- 降低广告质量得分
-- 用户看到完全相同的广告，疲劳度高
-- 浪费标题槽位（每个AG只有15个标题位）
-
-**优化建议**：
-- 为每个AG定制差异化CTA：
-  - Brand AG: "Shop [Brand] on Amazon"
-  - Category AG: "Get [Brand] on Amazon" / "View Price on Amazon"
-  - Pain Points AG: "Grab [Brand] on Amazon" / "Find [Brand] on Amazon"
-- 每个AG保留≤2个通用CTA，其余用AG特性标题填充
-
----
-
-## P2 中等问题清单
-
-### P2-1: 关键词匹配类型过于集中
-
-**判定条件**：
-```
-广泛匹配关键词占比 > 60%
-```
-
-**优化建议**：
-- 逐步将广泛匹配改为词组匹配
-- 保留少量广泛匹配用于发现新词（但需严格否定词）
-
----
-
-### P2-2: 否定词覆盖不足
-
-**判定条件**：
-```
-搜索字词报告中"都没有"状态的字词占比 > 40%
-```
-
-**优化建议**：
-- 批量处理"都没有"字词：有价值的添加为关键词，无关的添加为否定词
-- 建立否定词维护周期（每周一次）
-
----
-
-### P2-3: 广告组内关键词意图混杂
-
-**判定条件**：
-```
-同一广告组内的关键词明显属于不同意图层级
-```
-
-**优化建议**：
-- 将混杂关键词拆分到不同AG
-- 确保每个AG围绕单一意图
-
----
-
-### P2-4: 文案未标注目标意图
-
-**判定条件**：
-```
-广告文案中没有针对特定意图层级的设计
-```
-
-**优化建议**：
-- 为每个AG标注目标意图
-- 标题按意图分类（购买决策型、调研型、探索型、痛点型）
-- 描述与目标意图匹配
-
----
-
-### P2-5: 描述字符超限（新增）
-
-**判定条件**：
-```
-任何描述 > 90字符（Google Ads硬性限制）
-```
-
-**Affiliate影响**：
-- 超限描述无法导入Google Ads Editor
-- 通常意味着描述中包含冗余信息
-- 需精简语言，保留核心卖点
-
-**优化建议**：
-- 删除冗余形容词（如"Powerful yet quiet"→"Quiet motor"）
-- 使用缩写（如"Backed by Amazon's return policy"→"Backed by Amazon"）
-- 保留核心信息：卖点 + CTA + 风险逆转
-
----
-
-### P2-6: 高客单价产品文案缺乏风险逆转（新增）
-
-**判定条件**：
-```
-产品售价 > $200 且 文案中风险逆转元素占比 < 30%
-```
-
-**风险逆转元素**：
-- Easy returns / Backed by Amazon's return policy
-- Free shipping / Fast Amazon shipping
-- 4.6★ rated / 1,111+ reviews（社会证明也是一种风险逆转）
-- Prime eligible
-
-**Affiliate影响**：
-- 高客单价用户决策顾虑大，需要消除购买风险
-- 缺少风险逆转 = 高点击但低转化
-- Amazon Affiliate的利润完全依赖转化，必须促进即时决策
-
-**优化建议**：
-- 每个AG至少5个标题包含风险逆转元素
-- 描述最后一句固定为风险逆转 + CTA
-- 高客单价产品避免"Best"等最高级（除非有数据支撑），多用"Backed by Amazon"建立信任
-
----
-
-## 诊断输出格式
-
-每个问题按以下格式输出：
+## 诊断结论→优化行动映射规则
+
+> 以下规则定义了如何将诊断技能的输出转化为清洁版广告文件中的具体变更。
+> 诊断技能产出"问题清单"，本文件定义"如何修复这些问题"。
+> 诊断报告中的P0/P1/P2编号以诊断报告为准。
+
+### 映射总表
+
+| 诊断问题 | 优化行动类型 | 清洁版变更位置 | 变更方式 |
+|---------|------------|--------------|---------|
+| P0-1 CPC超过盈亏平衡 | 暂停关键词 + 降出价 | Keywords区域 | ⛔暂停注释 |
+| P0-2 Amazon产品不可用 | 暂停所有Campaign | 文件头部注释 | ⚠️全局暂停标记 |
+| P0-3 广告结构严重失衡 | 新增/启动Campaign/AG | 新增Campaign/AG区块 | ✅新增AG |
+| P0-4 零否定操作 | 批量否定词 | Negative Keywords区域 | 追加否定词 |
+| P0-5 竞品流量截获 | 竞品否定词 | Account-Level Negative | 追加否定词 |
+| P1-1 广泛匹配触发无关词 | 匹配类型修改 + 否定词 | Keywords + Negative区域 | 🔄改匹配 |
+| P1-2 零效果关键词 | 暂停关键词 | Keywords区域 | ⛔暂停注释 |
+| P1-3 CPC异常偏高 | 降低出价/改匹配 | Bidding Strategy区域 | 📉降出价 |
+| P1-4 非购买意图词 | 添加否定词 | Account/Campaign Negative | 追加否定词 |
+| P1-5 意图分布失衡 | 调整Campaign预算 | Bidding Strategy区域 | 预算调整 |
+| P1-6 意图-广告错配 | 调整文案匹配意图 | Headlines/Descriptions | 🔄替换文案 |
+| P1-7 用户旅程断点 | 启动缺失Campaign/AG | 新增Campaign/AG区块 | ✅新增AG |
+| P1-8 Amazon产品页面风险 | 收紧CPC上限 | Bidding Strategy区域 | Max CPC调整 |
+| P1-9 文案绝对承诺 | 替换绝对化措辞 | Headlines/Descriptions | 🔄替换文案 |
+| P1-10 跨AG标题重复 | 差异化CTA标题 | Headlines区域 | 🔄替换标题 |
+| P2-1 匹配类型集中 | 渐进收紧 | Keywords区域 | 逐步改匹配类型 |
+| P2-2 否定词覆盖不足 | 批量否定词 | Negative Keywords区域 | 追加否定词 |
+| P2-3 AG内意图混杂 | AG拆分/重组 | Campaign/AG区块 | 重组关键词归属 |
+| P2-4 文案未标注意图 | 意图标注 | Headlines/Descriptions注释 | 添加意图注释 |
+| P2-5 描述字符超限 | 描述精简 | Descriptions区域 | 替换描述 |
+| P2-6 缺乏风险逆转 | 新增风险逆转文案 | Headlines/Descriptions | 新增/替换 |
+
+### 变更注释格式规范
+
+在清洁版广告文件中，所有变更必须使用标准化注释：
 
 ```markdown
-### 问题 [N]（[P0/P1/P2]）: [问题标题]
+# 关键词变更注释
+[kw]  # ⛔ 暂停: CPC $4.50 > 盈亏平衡 $3.83 | 已消耗 ¥258
+[kw]  # ✅ 新增 | 利润评级: A | 来源: "搜索词报告 TOP10"
+[kw]  # 🔄 改匹配: +kw → "kw" | 原因: 广泛匹配触发80+无关词
+[kw]  # 📉 降出价: Max CPC $2.00 → $1.50 | 原因: CPC接近安全上限
 
-[问题描述，包含具体数据]
+# 文案变更注释
+[标题]  # 🔄 修改: "Stop Frizz Fast" → "Targets Frizz" | P1-9 合规
+[描述]  # 🔄 修改: 原描述→新描述 | 意图错配: 调研意图用户看到硬卖文案
 
-**数据证据**:
-| 指标 | 数值 |
-|------|------|
-| [指标1] | [值1] |
-| [指标2] | [值2] |
+# 结构变更注释
+## Ad Group X: New AG Name  # ✅ 新增AG | 诊断P0-3: 填补旅程断点
+```
 
-**根因分析**:
-1. [原因1]
-2. [原因2]
-3. [原因3]
+### 文案替换规则（基于诊断发现的意图错配）
 
-**影响评估**:
-[量化影响，如"每天浪费预算¥X，占总预算的Y%"]
-[对Affiliate的特殊影响，如"每无效点击直接亏损¥Z"]
+当诊断报告发现意图-广告错配（P1-6）时，按以下规则替换文案：
 
-**优化建议**:
-1. [具体行动1]
-2. [具体行动2]
-3. [具体行动3]
+**规则1：调研意图词 → 社会证明型文案**
+```
+触发条件：用户搜 reviews/reddit/does it work
+文案调整：
+  - 标题加入评分/评论数（如 "4.6★ Rated [Product]"）
+  - 描述加入社会证明（如 "Trusted by 1,000+ customers"）
+  - CTA改为 "See Why on Amazon" 而非 "Buy Now"
+```
 
-**预期效果**:
-- 节省预算：¥[X]/天
-- 改善CPC：降低[X]%
-- 提高利润效率：[X]%
+**规则2：探索意图词 → 差异化卖点型文案**
+```
+触发条件：用户搜 best/top/compare
+文案调整：
+  - 标题强调差异化卖点（如 "Lighter Than Most Hair Dryers"）
+  - 描述列出Top 3差异化点
+  - CTA改为 "View on Amazon"
+```
+
+**规则3：痛点意图词 → 痛点共鸣型文案**
+```
+触发条件：用户搜 tired of/sick of/fix/help with
+文案调整：
+  - 标题直接回应痛点（如 "Tired of Heavy Dryers?"）
+  - 描述强调解决方案而非产品参数
+  - CTA改为 "Find Your Solution on Amazon"
+```
+
+### 文案合规替换规则（基于P1-9绝对承诺诊断）
+
+当诊断报告发现文案存在绝对化措辞（P1-9）时，按以下规则替换：
+
+| 禁止措辞 | 替换为 | 适用场景 |
+|---------|--------|---------|
+| Stop [问题] | Targets / Fights / Reduces [问题] | 标题 |
+| No More [问题] | Less [问题] / Smoother / Clearer | 标题 |
+| Eliminate [问题] | Minimize / Reduce [问题] | 标题 |
+| Cut [时间] in Half | Faster / In Less Time | 标题 |
+| Instant / Miracle | Quick / Fast / Rapid | 标题 |
+| Guarantee / 100% | Customer-Rated / Trusted | 标题/描述 |
+
+### 出价策略调整规则（基于利润模型）
+
+```
+IF 利润评级 = D（亏损）:
+  → 暂停该关键词或AG
+  
+IF 利润评级 = C（边缘）:
+  → 降低出价至安全上限 × 0.8
+  → 收紧匹配类型
+  → 添加否定词减少无效点击
+  
+IF 利润评级 = B（盈利）:
+  → 维持当前出价
+  → 关注CPC趋势
+  
+IF 利润评级 = A（高利润）:
+  → 考虑提高出价10-20%
+  → 扩展相关关键词
+```
+
+### Affiliate专用否定词速查
+
+以下是必须检查的否定词类别，诊断报告如发现相关搜索词应直接添加：
+
+**免费/赠送类**: -free, -giveaway, -sample, -contest, -sweepstakes
+**教程/DIY类**: -tutorial, -how to make, -diy, -manual, -instructions, -blowout tutorial, -how to blow dry
+**竞品平台类**: -walmart, -target, -best buy, -costco, -ebay
+**二手/翻新类**: -used, -refurbished, -open box, -second hand
+**维修/配件类**: -repair, -fix, -parts, -replacement parts, -accessories
+**助眠/噪音类**: -asmr, -white noise, -sound machine, -binaural, -no ads
+**多语言排除**: 语言设置应限定English（Campaign级），但以下否定词作为兜底：
+  -secador de pelo, -ヘア ドライヤー, -sèche-cheveux（常见非英语搜索词）
+
+### 新增关键词选择规则
+
+从诊断报告的搜索字词分析中提取高价值词时，按以下优先级：
+
+```
+优先级1（P0）：购买决策意图 + CPC < 安全上限×0.5 → 精确匹配，加码出价
+优先级2（P1）：方案探索意图 + CPC < 安全上限 → 词组匹配，正常出价
+优先级3（P2）：调研意图 + CPC < 安全上限 → 词组匹配，正常出价
+优先级4（P3）：痛点认知意图 + CPC < 安全上限×0.7 → 词组匹配，保守出价
+不添加：信息浏览意图（如 "hair dryer", "amazon hair dryer"）
 ```

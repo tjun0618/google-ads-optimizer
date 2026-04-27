@@ -1,17 +1,17 @@
 [
   {
     "id": 1,
-    "prompt": "请优化这个广告。广告方案在 brands/CATLINK/CATLINK-ProX-Self-Cleaning-Litter-Box-Ready-To-Use-v1.1.md，搜索关键字报告在 brands/CATLINK/搜索关键字报告.xlsx，搜索字词报告在 brands/CATLINK/搜索字词报告.xlsx",
-    "expected": "生成完整的优化报告，包含数据总览、P0/P1问题诊断、否定词调整、关键词调整、出价策略调整、文案调整、优先级执行清单、以及调整后的Ready-To-Use广告文件"
+    "prompt": "诊断报告在 brands/Skin Research Institute/SRILabs-DryQ-Diagnosis-Report-v1.0.md，原清洁版在 brands/Skin Research Institute/SRILabs-DryQ-Ready-To-Use-v6.4.2.md。请基于诊断结果生成优化方案和清洁版广告文件。",
+    "expected": "输出优化摘要报告（记录做了什么优化）+ 优化后清洁版广告文件（v6.4.3），清洁版中暂停/新增/修改的关键词用标准化注释标注（⛔/✅/🔄）"
   },
   {
     "id": 2,
-    "prompt": "分析这个广告的投放数据，从用户意图角度告诉我用户为什么搜这些词，以及我应该如何调整广告来匹配用户意图。文件在 brands/Skin Research Institute/",
-    "expected": "输出用户意图分析（意图金字塔分布、用户旅程映射、意图-广告匹配度检查），并基于意图给出文案优化建议"
+    "prompt": "广告优化，诊断报告在 brands/PURE HEALTH MAX/PureHealthMAX-Heightener-Diagnosis-Report-v1.0.md，原清洁版在 brands/PURE HEALTH MAX/PureHealthMAX-Heightener-Gummies-Ready-To-Use-v2.0.md。",
+    "expected": "读取诊断报告提取P0/P1/P2问题和利润模型，生成优化摘要+清洁版v2.1，所有变更用注释标注"
   },
   {
     "id": 3,
-    "prompt": "帮我看看这个广告的搜索字词报告，为什么花了钱但没转化？搜索字词报告在 brands/PetLovers/搜索字词报告.xlsx",
-    "expected": "诊断零转化原因（价格错配、流量质量、着陆页问题、联盟链接摩擦），给出具体优化措施"
+    "prompt": "帮我优化这个广告。诊断报告和原清洁版都在 brands/CATLINK/ 目录下。",
+    "expected": "自动查找目录下的诊断报告和清洁版文件，验证文件存在后执行优化，输出摘要和清洁版"
   }
 ]

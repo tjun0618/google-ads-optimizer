@@ -1,0 +1,13 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-04-28T06:44	baseline	google-ads-optimizer	-	69.2	baseline	初始v3.0评估	基线评分：结构56.2+效果27.0=83.2→/1.0→69.2。主要短板：(1)optimization-analyzer.md内容矛盾-说迁移但保留完整P0P1P2 (2)report-generator.md新旧模板并存 (3)SKILL.md Step1 Python伪代码过长 (4)P0编号不一致SKILL vs analyzer (5)test-prompts.json未更新v3.0	dry_run
+2026-04-28T06:50	r1	google-ads-optimizer	69.2	73.5	keep	资源整合度+指令具体性	Round1: 重写optimization-analyzer.md，删除480行旧P0P1P2定义，只保留130行优化映射规则+否定词速查+关键词选择规则。消除内容矛盾。	dry_run
+2026-04-28T06:52	r2	google-ads-optimizer	73.5	76.8	keep	指令具体性+资源整合度	Round2: 重写report-generator.md，删除695行v2.2完整报告模板，重写为200行v3.0两文件输出规范（摘要+清洁版）。质量检查清单从9个精简为8个。	dry_run
+2026-04-28T06:54	r3	google-ads-optimizer	76.8	78.7	keep	工作流清晰度+指令具体性+实测表现	Round3: 精简SKILL.md Step1的60行Python伪代码为7行要点清单；更新test-prompts.json为v3.0风格（3个prompt）。	dry_run
+2026-04-28T07:10	r4	google-ads-optimizer	78.7	80.5	keep	资源整合度	Round4: 重写data-parser.md 515→180行。删除v2.2利润分析代码/YP交叉分析/品牌级ROI/漏斗分析（已迁移到诊断技能）。保留纯数据解析功能，修复章节编号重复。	dry_run
+2026-04-28T07:12	r5	google-ads-optimizer	80.5	81.2	keep	资源整合度	Round5: 重写affiliate-profit-analyzer.md 305→90行。删除v2.2完整执行步骤/品牌级追踪/高利润机会识别/输出格式。保留核心公式+参考表。	dry_run
+2026-04-28T07:14	r6	google-ads-optimizer	81.2	82.5	keep	工作流清晰度+资源整合度	Round6: 精简user-intent-analyzer.md 550→120行。删除Python分类代码/分布统计/旅程映射/断点分析。保留意图金字塔+文案规则+否定词速查。精简SKILL.md Step2伪代码。	dry_run
+2026-04-28T07:16	r7	google-ads-optimizer	82.5	83.2	keep	资源整合度+实测表现	Round7: 修复report-generator.md章节编号重复（两个3→3和4）；删除report-generator.md中与SKILL.md重复的56行质量检查清单；精简amazon-affiliate-checklist.md 297→70行。所有5个references完全对齐v3.0。
+2026-04-28T07:30	r8	google-ads-optimizer	83.2	83.8	keep	指令具体性	Round8: 重写report-generator.md（修复内部编号冲突，模板精简，259→210行）
+2026-04-28T07:31	r9	google-ads-optimizer	83.8	84.5	keep	工作流清晰度+整体架构	Round9: SKILL.md Step6 P0/P1映射表从30行精简为引用+3行概括（消除与optimization-analyzer.md重复）
+2026-04-28T07:33	r10	google-ads-optimizer	84.5	85.2	keep	工作流清晰度+整体架构	Round10: SKILL.md Step7清洁版模板从60行精简为引用+3行要点（消除与report-generator.md重复）
+2026-04-28T07:35	r11	google-ads-optimizer	85.2	86.5	keep	Frontmatter+检查点+整体架构+实测表现	Round11: Frontmatter精炼（description两行+7触发词）；OPT-QC从8个精简为7个（合并6+7消除边界模糊）；SKILL.md 564→540行
